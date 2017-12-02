@@ -6,43 +6,52 @@ import os
 
 
 class LibnameConan(ConanFile):
-    name = "libname"
-    version = "0.0.0"
-    url = "https://github.com/bincrafters/conan-libname"
-    description = "Keep it short"
-    license = "https://github.com/someauthor/somelib/blob/master/LICENSES"
-    exports_sources = ["CMakeLists.txt", "LICENSE"]
+    name = "nghttp2"
+    version = "1.28.0"
+    url = "https://github.com/nghttp2/nghttp2"
+    description = "HTTP/2 C Library and tools"
+    license = "https://raw.githubusercontent.com/nghttp2/nghttp2/master/LICENSE"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
     default_options = "shared=False"
-    #use static org/channel for libs in conan-center
-    #use dynamic org/channel for libs in bincrafters
-    requires = "OpenSSL/1.0.2l@conan/stable", \
-        "zlib/1.2.11@conan/stable", \
-        "websocketpp/0.7.0@%s/%s" % (self.user, self.channel)
+    exports_sources = ['CMakeLists.txt']
+    generators = 'cmake'
 
     def source(self):
-        source_url = "https://github.com/Microsoft/cpprestsdk"
+        source_url = "https://github.com/nghttp2/nghttp2"
         tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
         os.rename(extracted_dir, "sources")
-        #Rename to "sources" is a convention to simplify later steps
 
     def build(self):
         cmake = CMake(self)
-        cmake.definitions["BUILD_TESTS"] = False # example
-        cmake.configure(source_dir="sources")
+        cmake.definitions["ENABLE_LIB_ONLY"] = True
+        cmake.definitions["CMAKE_INSTALL_PREFIX"] = self.package_folder
+        cmake.definitions["CMAKE_BUILD_SHARED_LIBS"] = self.options.shared
+
+        tools.replace_in_file(
+            'sources/lib/CMakeLists.txt',
+            'DESTINATION "${CMAKE_INSTALL_LIBDIR}"',
+            'RUNTIME DESTINATION "bin" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib"')
+
+        tools.replace_in_file(
+            'sources/lib/CMakeLists.txt',
+            'add_library(nghttp2 SHARED ${NGHTTP2_SOURCES} ${NGHTTP2_RES})',
+            'add_library(nghttp2 ${NGHTTP2_SOURCES} ${NGHTTP2_RES})')
+
+        if not self.options.shared:
+            tools.replace_in_file(
+                'sources/lib/includes/nghttp2/nghttp2.h',
+                '#define NGHTTP2_EXTERN __declspec(dllimport)',
+                '#define NGHTTP2_EXTERN')
+
+        cmake.configure()
         cmake.build()
+        cmake.install()
 
     def package(self):
-        with tools.chdir("sources"):
-            self.copy(pattern="LICENSE")
-            self.copy(pattern="*", dst="include", src="include")
-            self.copy(pattern="*.dll", dst="bin", src="bin", keep_path=False)
-            self.copy(pattern="*.lib", dst="lib", src="lib", keep_path=False)
-            self.copy(pattern="*.a", dst="lib", src="lib", keep_path=False)
-            self.copy(pattern="*.so*", dst="lib", src="lib", keep_path=False)
-            self.copy(pattern="*.dylib", dst="lib", src="lib", keep_path=False)
+         # files are copied by cmake.install()
+        pass
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
