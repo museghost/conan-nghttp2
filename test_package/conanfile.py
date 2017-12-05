@@ -11,6 +11,7 @@ class TestPackageConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+        cmake.definitions['ENABLE_ASIO_LIB'] = self.options['nghttp2'].with_asio
         cmake.configure()
         cmake.build()
 

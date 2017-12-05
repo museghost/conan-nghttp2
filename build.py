@@ -60,6 +60,7 @@ if __name__ == "__main__":
     upload = "https://api.bintray.com/conan/{0}/public-conan".format(username)
 
     builder = ConanMultiPackager(
+        args='--build missing',
         username=username,
         channel=channel,
         reference=reference,
@@ -69,4 +70,9 @@ if __name__ == "__main__":
         stable_branch_pattern="stable/*")
 
     builder.add_common_builds(shared_option_name=name + ":shared")
+
+    if os.environ.get("WITH_ASIO"):
+        for build in builder.builds:
+            build.options['nghttp2:with_asio'] = True
+
     builder.run()
