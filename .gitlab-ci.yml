@@ -25,6 +25,8 @@ before_script:
 .deployment: &DEPLOYMENT
   script:
     - echo $(pwd)
+    - echo $CONAN_UPLOAD
+    - $CONAN_UPLOAD
 
 
 #
@@ -52,5 +54,5 @@ osx_deploy:
   stage: deploy
   tags: [mac]
   variables:
-    BSPACKAGE: "conan upload nghttp2/1.36.0@aphrodite/stable --all -r conan-aphrodite"
+    CONAN_UPLOAD: "conan upload nghttp2/1.36.0@aphrodite/stable --all -r conan-aphrodite"
   <<: *DEPLOYMENT
