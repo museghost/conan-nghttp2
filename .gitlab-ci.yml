@@ -8,7 +8,7 @@ before_script:
   - echo $(pwd)
   - pip3.7 install conan
 #  - conan usr -p -r aphro
-  - conan remote update conan-aphrodite https://artifactory.beatthemarket.co.kr/artifactory/api/conan/conan-aphrodite
+  - conan remote update aphrodite https://artifactory.beatthemarket.co.kr/artifactory/api/conan/aphrodite
 
 
 # templates
@@ -37,7 +37,7 @@ osx_x86_64_release:
   tags: [mac]
   variables:
     TARGET_DIR: $CI_PROJECT_DIR
-    CONAN: "conan create . aphrodite/stable -s build_type=Release -o nghttp2:shared=True"
+    CONAN: "conan create . aphrodite/stable -s build_type=Release -o nghttp2:with_libxml2=True -o nghttp2:with_jemalloc=True -o nghttp2:with_libevent=True -o nghttp2:with_libev=True -o nghttp2:with_jansson=True -o nghttp2:with_libcares=True"
   <<: *BUILD_UP
 
 
@@ -46,7 +46,7 @@ osx_x86_64_debug:
   tags: [mac]
   variables:
     TARGET_DIR: $CI_PROJECT_DIR
-    CONAN: "conan create . aphrodite/stable -s build_type=Debug -o nghttp2:shared=True"
+    CONAN: "conan create . aphrodite/stable -s build_type=Debug -o nghttp2:with_libxml2=True -o nghttp2:with_jemalloc=True -o nghttp2:with_libevent=True -o nghttp2:with_libev=True -o nghttp2:with_jansson=True -o nghttp2:with_libcares=True"
   <<: *BUILD_UP
 
 
@@ -54,5 +54,5 @@ osx_deploy:
   stage: deploy
   tags: [mac]
   variables:
-    CONAN_UPLOAD: "conan upload nghttp2/1.36.0@aphrodite/stable --all -r conan-aphrodite"
+    CONAN_UPLOAD: "conan upload nghttp2/1.36.0@aphrodite/stable --all -r aphrodite"
   <<: *DEPLOYMENT

@@ -5,7 +5,7 @@ from conans import ConanFile, CMake, tools
 import os
 
 
-kOPTIONS = ("shared", "with_asio", "with_libxml2", "with_jemalloc",
+kOPTIONS = ("with_asio", "with_libxml2", "with_jemalloc",
             "with_spdylay", "with_libevent",
             "with_jansson", "with_libcares", "with_libev")
 
@@ -32,7 +32,7 @@ class Nghttp2Conan(ConanFile):
     def requirements(self):
         self.requires.add("OpenSSL/1.1.0j@conan/stable")
 
-        if self.options['with_asio']:
+        if self.options.with_asio:
             self.requires.add("OpenSSL/[>1.0.2a,<1.0.3]@conan/stable")
 
             for boost_lib in ('Asio', 'System', 'Thread'):
@@ -50,45 +50,32 @@ class Nghttp2Conan(ConanFile):
         cmake = CMake(self)
         cmake.definitions["ENABLE_LIB_ONLY"] = True
         cmake.definitions["CMAKE_INSTALL_PREFIX"] = self.package_folder
-        if self.options['shared']:
-            cmake.definitions['ENABLE_SHARED_LIB'] = True
-            cmake.definitions['BUILD_SHARED_LIBS'] = True
-            cmake.definitions['BUILD_STATIC_LIBS'] = False
-        else:
-            cmake.definitions['ENABLE_STATIC_LIB'] = True
-            cmake.definitions['BUILD_SHARED_LIBS'] = False
-            cmake.definitions['BUILD_STATIC_LIBS'] = True
+
+        #if self.options.shared:
+        cmake.definitions['ENABLE_SHARED_LIB'] = True
+        cmake.definitions['ENABLE_STATIC_LIB'] = True
+        cmake.definitions['BUILD_SHARED_LIBS'] = True
+        cmake.definitions['BUILD_STATIC_LIBS'] = True
 
         # Use dependency version of openssl
         openssl_root_dir = self.deps_cpp_info["OpenSSL"].rootpath
         cmake.definitions['OPENSSL_ROOT_DIR'] = openssl_root_dir
 
-        # TODO: cmake 에게 맞긴다
-        #for option in _FIND_PACKAGES:
-        #    if not getattr(self.options, option):
-        #        tools.replace_in_file('sources/CMakeLists.txt', _FIND_PACKAGES[option], '')
+        for option in _FIND_PACKAGES:
+            if not getattr(self.options, option):
+                tools.replace_in_file('sources/CMakeLists.txt', _FIND_PACKAGES[option], '')
 
         tools.replace_in_file(
             'sources/lib/CMakeLists.txt',
             'DESTINATION "${CMAKE_INSTALL_LIBDIR}"',
             'RUNTIME DESTINATION "bin" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib"')
 
-        #tools.replace_in_file(
-        #    'sources/lib/CMakeLists.txt',
-        #    'add_library(nghttp2 SHARED ${NGHTTP2_SOURCES} ${NGHTTP2_RES})',
-        #    'add_library(nghttp2 ${NGHTTP2_SOURCES} ${NGHTTP2_RES})')
-
         tools.replace_in_file(
             'sources/src/CMakeLists.txt',
             'DESTINATION "${CMAKE_INSTALL_LIBDIR}"',
             'RUNTIME DESTINATION "bin" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib"')
 
-        #tools.replace_in_file(
-        #    'sources/src/CMakeLists.txt',
-        #    'add_library(nghttp2_asio SHARED',
-        #    'add_library(nghttp2_asio')
-
-        if self.options['with_asio']:
+        if self.options.with_asio:
             cmake.definitions["ENABLE_ASIO_LIB"] = True
 
             tools.replace_in_file(
