@@ -7,8 +7,6 @@ before_script:
   - echo $PATH
   - echo $(pwd)
   - pip3.7 install conan
-#  - conan usr -p -r aphro
-  - conan remote update aphrodite https://artifactory.beatthemarket.co.kr/artifactory/api/conan/aphrodite
 
 
 # templates
@@ -53,6 +51,6 @@ osx_x86_64_debug:
 osx_deploy:
   stage: deploy
   tags: [mac]
-  variables:
-    CONAN_UPLOAD: "conan upload nghttp2/1.36.0@aphrodite/stable --all -r aphrodite"
-  <<: *DEPLOYMENT
+  script:
+    - conan remote update aphrodite https://artifactory.beatthemarket.co.kr/artifactory/api/conan/aphrodite False
+    - conan upload nghttp2/1.36.0@aphrodite/stable --all -r aphrodite
