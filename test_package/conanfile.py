@@ -5,7 +5,7 @@ from conans import ConanFile, CMake, tools, RunEnvironment
 import os
 
 
-class TestPackageConan(ConanFile):
+class TestNghttp2Conan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
 

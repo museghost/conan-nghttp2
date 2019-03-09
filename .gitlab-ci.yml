@@ -1,0 +1,56 @@
+stages:
+  - build
+  - deploy
+
+
+before_script:
+  - echo $PATH
+  - echo $(pwd)
+  - pip3.7 install conan
+#  - conan usr -p -r aphro
+  - conan remote update conan-aphrodite https://artifactory.beatthemarket.co.kr/artifactory/api/conan/conan-aphrodite
+
+
+# templates
+.build_up: &BUILD_UP
+  script:
+    - echo $(pwd)
+    - echo $MSYSTEM
+    - echo $CI_PROJECT_DIR
+    - echo $TARGET_DIR
+    - echo $CONAN
+    - $CONAN
+
+
+.deployment: &DEPLOYMENT
+  script:
+    - echo $(pwd)
+
+
+#
+# Mac (osx)
+#
+osx_x86_64_release:
+  stage: build
+  tags: [mac]
+  variables:
+    TARGET_DIR: $CI_PROJECT_DIR
+    CONAN: "conan create . aphrodite/stable -s build_type=Release -o nghttp2:shared=True"
+  <<: *BUILD_UP
+
+
+osx_x86_64_debug:
+  stage: build
+  tags: [mac]
+  variables:
+    TARGET_DIR: $CI_PROJECT_DIR
+    CONAN: "conan create . aphrodite/stable -s build_type=Debug -o nghttp2:shared=True"
+  <<: *BUILD_UP
+
+
+osx_deploy:
+  stage: deploy
+  tags: [mac]
+  variables:
+    BSPACKAGE: "conan upload nghttp2/1.36.0@aphrodite/stable --all -r conan-aphrodite"
+  <<: *DEPLOYMENT
